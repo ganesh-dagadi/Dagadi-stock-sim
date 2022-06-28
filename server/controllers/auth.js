@@ -29,7 +29,7 @@ module.exports.loginUser = async function (req, res, next) {
         },
             process.env.ACCESS_TOKEN_SECRET,
             {
-                expiresIn: 1200
+                expiresIn: 120
             }
         )
 
@@ -38,13 +38,10 @@ module.exports.loginUser = async function (req, res, next) {
             username: userData.username
         },
             process.env.REFRESH_TOKEN_SECRET,
-            {
-                expiresIn: 1200
-            }
         )
         await db.query('UPDATE person SET ref_token = $1 WHERE username = $2', [refreshToken, username]);
         res.cookie("accessToken", accessToken, {
-            expiresIn: 1000 * 60 * 20,
+            expiresIn: 1000 * 60 * 2,
             httpOnly: true,
             sameSite: "strict",
         })
@@ -87,6 +84,7 @@ module.exports.newToken = async function (req, res, next) {
             })
             res.status(200).json({ msg: "Success" })
         } catch (error) {
+            console.log(error)
             res.status(403).json({ error: { msg: "Invalid refresh token", isRefreshTokenError: true } })
         }
     } catch (err) {
@@ -111,7 +109,7 @@ module.exports.logoutUser = async function (req, res, next) {
             path: '/api/auth'
         })
         res.clearCookie('accessToken', {
-            expiresIn: 1000 * 60 * 20,   // 20 minutes
+            expiresIn: 1000 * 60 * 2,   // 20 minutes
             httpOnly: true,
             sameSite: "strict"
         })
@@ -120,4 +118,11 @@ module.exports.logoutUser = async function (req, res, next) {
         console.log(err)
         next(err)
     }
+}
+
+
+module.exports.protectedcontrol = async function (req, res, next) {
+    console.log(req.user)
+    res.send("Hit")
+
 }
