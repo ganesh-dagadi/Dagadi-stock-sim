@@ -1,30 +1,41 @@
 <template>
-  <nav>
-    <router-link to="/">Home</router-link> |
-    <router-link to="/about">About</router-link>
-  </nav>
-  <router-view/>
+  <div>
+    <router-view></router-view>
+
+    <nav class="navbar">
+      <div class="navbar-link active">
+        <router-link to="/" id="home">Home</router-link>
+      </div>
+      <div class="navbar-link active">
+        <router-link to="/" id="home">Pic</router-link>
+      </div>
+      <div class="navbar-link active">
+        <router-link to="/" id="home">Signup</router-link>
+      </div>
+    </nav>
+  </div>
 </template>
 
 <style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
+.navbar {
+  width: 50%;
+  margin: auto;
+  padding-top: 1vh;
+  padding-bottom: 1vh;
+  padding-left: 25px;
+  padding-right: 25px;
+  height: auto;
+  border: 0.5px solid #00000079;
+  border-radius: 15px;
+  margin-top: 7vh;
+  background: white;
 }
 
-nav {
-  padding: 30px;
+.navbar-link {
+  width: fit-content;
 }
 
-nav a {
-  font-weight: bold;
-  color: #2c3e50;
-}
-
-nav a.router-link-exact-active {
-  color: #42b983;
+.navbar img {
+  width: 24px;
 }
 </style>
