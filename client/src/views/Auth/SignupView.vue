@@ -3,17 +3,27 @@
     <div class="signup-wrapper">
       <h1>Signup</h1>
       <p class="extra-txt">Create a new free account</p>
-      <form>
+      <form @submit="submitForm">
         <div class="inp-ele">
-          <input type="email" placeholder="Email" required />
+          <input type="email" placeholder="Email" v-model="email" required />
         </div>
 
         <div class="inp-ele">
-          <input type="text" placeholder="Username" required />
+          <input
+            type="text"
+            placeholder="Username"
+            v-model="username"
+            required
+          />
         </div>
 
         <div class="inp-ele">
-          <input type="password" placeholder="Password" required />
+          <input
+            type="password"
+            placeholder="Password"
+            v-model="password"
+            required
+          />
         </div>
 
         <button type="submit">Submit</button>
@@ -25,6 +35,45 @@
     </div>
   </div>
 </template>
+
+<script>
+import axios from "axios";
+import router from "../../router/index";
+import store from "../../store/index";
+export default {
+  data() {
+    return {
+      email: "",
+      username: "",
+      password: "",
+    };
+  },
+  methods: {
+    async submitForm(event) {
+      event.preventDefault();
+      const userData = {
+        username: this.username,
+        password: this.password,
+        email: this.email,
+      };
+      try {
+        const response = await axios.post(
+          "http://localhost:3000/auth/signup",
+          userData
+        );
+
+        if (response.status == 200) {
+          store.commit("setError", "");
+          store.commit("setMsg", response.data.msg);
+          router.push({ name: "login" });
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    },
+  },
+};
+</script>
 
 <style scoped>
 .signup-wrapper {

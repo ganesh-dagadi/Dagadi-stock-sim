@@ -3,11 +3,11 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 module.exports.signupUser = async function (req, res, next) {
     try {
-        const { username, password } = req.body;
+        const { username, password, email } = req.body;
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        await db.query("INSERT INTO person (username , password , isActive) VALUES ($1 , $2 , $3)", [username, hashedPassword, true]);
+        await db.query("INSERT INTO person (username , password , isActive , email) VALUES ($1 , $2 , $3 , $4)", [username, hashedPassword, true, email]);
         return res.status(200).json({ msg: "User created. Please login" });
     } catch (err) {
         console.log(err)
