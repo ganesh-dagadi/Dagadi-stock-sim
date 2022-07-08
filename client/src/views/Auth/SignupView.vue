@@ -40,6 +40,7 @@
 import axios from "axios";
 import router from "../../router/index";
 import store from "../../store/index";
+import { mapActions } from "vuex";
 export default {
   data() {
     return {
@@ -49,6 +50,7 @@ export default {
     };
   },
   methods: {
+    ...mapActions(["setError"]),
     async submitForm(event) {
       event.preventDefault();
       const userData = {
@@ -57,18 +59,15 @@ export default {
         email: this.email,
       };
       try {
-        const response = await axios.post(
-          "http://localhost:3000/auth/signup",
-          userData
-        );
+        const response = await axios.post("/auth/signup", userData);
 
         if (response.status == 200) {
-          store.commit("setError", "");
-          store.commit("setMsg", response.data.msg);
+          store.dispatch("setError", "");
+          store.dispatch("setMsg", response.data.msg);
           router.push({ name: "login" });
         }
       } catch (err) {
-        console.log(err);
+        this.setError(err.response.data.error);
       }
     },
   },

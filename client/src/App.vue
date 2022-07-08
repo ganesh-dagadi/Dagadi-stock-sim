@@ -18,16 +18,43 @@
         <router-link to="/" id="home">Pic</router-link>
       </div>
       <div class="navbar-link active">
-        <router-link to="/" id="home">Signup</router-link>
+        <router-link v-show="!this.isLoggedIn" to="/signup" id="home"
+          >Signup</router-link
+        >
+        <div v-show="this.isLoggedIn" @click="logoutUser" id="home">Logout</div>
       </div>
     </nav>
   </div>
 </template>
 
 <script>
-import { mapGetters } from "vuex";
+import { mapGetters, mapActions } from "vuex";
+import axios from "axios";
+import router from "./router";
 export default {
-  computed: mapGetters(["getError", "getMsg"]),
+  computed: mapGetters(["getError", "getMsg", "isLoggedIn"]),
+  methods: {
+    ...mapActions([
+      "syncAuthLocalStorage",
+      "setError",
+      "setMsg",
+      "clearAuthState",
+    ]),
+
+    async logoutUser() {
+      try {
+        const res = await axios.get("/auth/logout");
+        this.setMsg(res.data.msg);
+        this.clearAuthState();
+        router.push({ name: "home" });
+      } catch (err) {
+        this.setError(err.response.data.error);
+      }
+    },
+  },
+  beforeCreate() {
+    this.$store.dispatch("syncAuthLocalStorage");
+  },
 };
 </script>
 

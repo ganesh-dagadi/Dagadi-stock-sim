@@ -10,19 +10,18 @@ module.exports.signupUser = async function (req, res, next) {
         await db.query("INSERT INTO person (username , password , isActive , email) VALUES ($1 , $2 , $3 , $4)", [username, hashedPassword, true, email]);
         return res.status(200).json({ msg: "User created. Please login" });
     } catch (err) {
-        console.log(err)
         next(err)
     }
 }
 
 module.exports.loginUser = async function (req, res, next) {
-    const { username, password } = req.body;
+    const { email, password } = req.body;
     try {
-        const data = await db.query(`SELECT * FROM person WHERE username = '${username}'`);
-        if (data.rowCount == 0) return res.status(404).json({ err: 'Username does not exist' });
+        const data = await db.query('SELECT * FROM person WHERE email = $1', [email]);
+        if (data.rowCount == 0) return res.status(400).json({ error: 'Email does not exist' });
         userData = data.rows[0];
         const passwordMatch = await bcrypt.compare(password, userData.password);
-        if (!passwordMatch) return res.status(403).json({ err: "Password is incorrect" });
+        if (!passwordMatch) return res.status(400).json({ error: "Password is incorrect" });
         const accessToken = jwt.sign({
             _id: userData._id,
             username: userData.username
@@ -39,7 +38,7 @@ module.exports.loginUser = async function (req, res, next) {
         },
             process.env.REFRESH_TOKEN_SECRET,
         )
-        await db.query('UPDATE person SET ref_token = $1 WHERE username = $2', [refreshToken, username]);
+        await db.query('UPDATE person SET ref_token = $1 WHERE email = $2', [refreshToken, email]);
         res.cookie("accessToken", accessToken, {
             expiresIn: 1000 * 60 * 2,
             httpOnly: true,
@@ -52,6 +51,7 @@ module.exports.loginUser = async function (req, res, next) {
             path: '/auth'
         })
         userData.ref_token = null;
+        userData.password = null;
         res.status(200).json({ user: userData })
 
     } catch (err) {
@@ -64,7 +64,7 @@ module.exports.newToken = async function (req, res, next) {
     if (!token) return res.status(400).json({ error: "please include refreshToken in cookie" })
     try {
         const data = await db.query('SELECT * FROM person WHERE ref_token = $1', [token]);
-        if (data.rowCount == 0) return res.status(403).json({ error: { msg: "Invalid token", isRefreshTokenError: true } })
+        if (data.rowCount == 0) return res.status(403).json({ error: "Invalid token", isRefreshTokenError: true })
         try {
             const tokenData = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET)
             const newToken = jwt.sign(
@@ -85,7 +85,7 @@ module.exports.newToken = async function (req, res, next) {
             res.status(200).json({ msg: "Success" })
         } catch (error) {
             console.log(error)
-            res.status(403).json({ error: { msg: "Invalid refresh token", isRefreshTokenError: true } })
+            res.status(403).json({ error: "Invalid refresh token", isRefreshTokenError: true })
         }
     } catch (err) {
         next(err)
@@ -99,7 +99,7 @@ module.exports.logoutUser = async function (req, res, next) {
     if (!refToken || !accessToken) return res.status(400).json({ error: "tokens not provided in cookie" })
     try {
         let data = await db.query('SELECT * FROM person WHERE ref_token = $1', [refToken]);
-        if (data.rowCount == 0) return res.status(403).json({ error: { msg: "Invalid token", isRefreshTokenError: true } })
+        if (data.rowCount == 0) return res.status(403).json({ error: "Invalid token", isRefreshTokenError: true })
         dbToken = data.rows[0].ref_token;
 
         await db.query('UPDATE person SET ref_token = $1 WHERE ref_token = $2', ['null', dbToken]);
@@ -122,7 +122,6 @@ module.exports.logoutUser = async function (req, res, next) {
 
 
 module.exports.protectedcontrol = async function (req, res, next) {
-    console.log(req.user)
     res.send("Hit")
 
 }
